@@ -44,7 +44,7 @@
 
     /* ── Player panels ── */
     .player-panel {
-      width: 300px;
+      width: 320px;
       height: 100%;
       display: flex;
       flex-direction: column;
@@ -65,7 +65,7 @@
           rgba(31, 28, 76, 0.97) 62%,
           rgba(20, 18, 50, 0.99) 100%);
       border-right: 1px solid rgba(227, 202, 168, 0.22);
-      padding-right: 50px;
+      padding-right: 58px;
       box-shadow:
         inset -6px 0 30px rgba(227, 202, 168, 0.07),
         inset 0 -80px 60px rgba(232, 213, 163, 0.04);
@@ -80,7 +80,7 @@
           rgba(31, 28, 76, 0.97) 62%,
           rgba(20, 18, 50, 0.99) 100%);
       border-left: 1px solid rgba(227, 202, 168, 0.22);
-      padding-left: 50px;
+      padding-left: 58px;
       box-shadow:
         inset 6px 0 30px rgba(227, 202, 168, 0.07),
         inset 0 -80px 60px rgba(232, 213, 163, 0.04);
@@ -186,7 +186,7 @@
     .player-label {
       font-family: 'Jost', sans-serif;
       font-weight: 600;
-      font-size: 10px;
+      font-size: 12px;
       letter-spacing: 5px;
       text-transform: uppercase;
       color: var(--gold);
@@ -196,7 +196,7 @@
     .player-name {
       font-family: 'Jost', sans-serif;
       font-weight: 800;
-      font-size: 24px;
+      font-size: 28px;
       color: var(--text);
       text-shadow:
         0 0 18px rgba(240, 223, 200, 0.55),
@@ -228,7 +228,7 @@
     }
 
     .wins-label {
-      font-size: 12px;
+      font-size: 14px;
       letter-spacing: 2px;
       text-transform: uppercase;
       color: var(--muted);
@@ -262,7 +262,7 @@
       position: absolute;
       top: 0;
       bottom: 0;
-      width: 46px;
+      width: 54px;
       display: flex;
       flex-direction: column-reverse;
       gap: 1px;
@@ -294,7 +294,7 @@
     .rung-num {
       font-family: 'Jost', sans-serif;
       font-weight: 800;
-      font-size: 15px;
+      font-size: 19px;
       line-height: 1;
       color: rgba(42, 39, 92, 0.35);
       transition: color 0.2s ease, font-size 0.15s ease;
@@ -314,7 +314,7 @@
       flex: 1.4;
     }
     .rung.current .rung-num {
-      font-size: 22px;
+      font-size: 36px;
       color: #1a1840;
       text-shadow: none;
     }
@@ -331,7 +331,7 @@
       box-shadow: 0 0 10px rgba(211, 186, 132, 0.55), 0 0 24px rgba(211, 186, 132, 0.20);
     }
     .rung.current.near-win .rung-num {
-      font-size: 22px;
+      font-size: 36px;
       color: #1a1840;
       text-shadow: none;
     }
@@ -344,7 +344,7 @@
       animation: pulse-rung 1s ease-in-out infinite;
     }
     .rung.current.max .rung-num {
-      font-size: 22px;
+      font-size: 36px;
       color: var(--parchment-l);
       text-shadow: 0 0 12px rgba(227, 202, 168, 1);
     }
@@ -375,7 +375,7 @@
       display: none;
       font-family: 'Jost', sans-serif;
       font-weight: 700;
-      font-size: 10px;
+      font-size: 12px;
       letter-spacing: 4px;
       text-transform: uppercase;
       color: var(--beige-l);
@@ -538,7 +538,7 @@
     connect();
 
     function fitName(el) {
-      el.style.fontSize = '24px';
+      el.style.fontSize = '28px';
       while (el.scrollWidth > el.offsetWidth && parseFloat(el.style.fontSize) > 11) {
         el.style.fontSize = (parseFloat(el.style.fontSize) - 0.5) + 'px';
       }
