@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lorcana Overlay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700;800&family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Lorcana palette ── */
+      --gold:        #d3ba84;   /* Illuminary Gold — secondary */
+      --parchment:   #e3caa8;   /* Parchment — tertiary */
+      --parchment-l: #f0dfc8;   /* lighter parchment */
+      --purple:      #2A275C;
+      --purple-deep: #1a1840;
+      --purple-mid:  #322f6e;
+      --beige:       #e3caa8;
+      --beige-l:     #f0dfc8;
+      --beige-d:     #d3ba84;
+      --beige-dim:   rgba(227, 202, 168, 0.55);
+      --glow-beige:  rgba(227, 202, 168, 0.25);
+      --text:        #f0dfc8;
+      --muted:       rgba(227, 202, 168, 0.50);
+    }
+
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      background: transparent;
+      overflow: hidden;
+      font-family: 'Chakra Petch', monospace;
+    }
+
+    .overlay {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      position: relative;
+    }
+
+    /* ── Player panels ── */
+    .player-panel {
+      width: 300px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 26px 0 26px;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Gradient background — atmospheric radial spotlight at inner top corner */
+    .player-panel.p1 {
+      background:
+        radial-gradient(ellipse 170% 45% at 0% 0%, rgba(72, 64, 158, 0.52) 0%, transparent 60%),
+        radial-gradient(ellipse 100% 22% at 50% 100%, rgba(10, 8, 30, 0.65) 0%, transparent 68%),
+        linear-gradient(180deg,
+          rgba(54, 51, 118, 0.97) 0%,
+          rgba(43, 40, 95, 0.96) 32%,
+          rgba(31, 28, 76, 0.97) 62%,
+          rgba(20, 18, 50, 0.99) 100%);
+      border-right: 1px solid rgba(227, 202, 168, 0.22);
+      padding-right: 50px;
+      box-shadow:
+        inset -6px 0 30px rgba(227, 202, 168, 0.07),
+        inset 0 -80px 60px rgba(232, 213, 163, 0.04);
+    }
+    .player-panel.p2 {
+      background:
+        radial-gradient(ellipse 170% 45% at 100% 0%, rgba(72, 64, 158, 0.52) 0%, transparent 60%),
+        radial-gradient(ellipse 100% 22% at 50% 100%, rgba(10, 8, 30, 0.65) 0%, transparent 68%),
+        linear-gradient(180deg,
+          rgba(54, 51, 118, 0.97) 0%,
+          rgba(43, 40, 95, 0.96) 32%,
+          rgba(31, 28, 76, 0.97) 62%,
+          rgba(20, 18, 50, 0.99) 100%);
+      border-left: 1px solid rgba(227, 202, 168, 0.22);
+      padding-left: 50px;
+      box-shadow:
+        inset 6px 0 30px rgba(227, 202, 168, 0.07),
+        inset 0 -80px 60px rgba(232, 213, 163, 0.04);
+    }
+
+    /* Top accent bar — Illuminary Gold, 4px with 3-layer glow */
+    .player-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(211, 186, 132, 0.3) 12%,
+        rgba(211, 186, 132, 0.65) 30%,
+        #d3ba84 50%,
+        rgba(211, 186, 132, 0.65) 70%,
+        rgba(211, 186, 132, 0.3) 88%,
+        transparent 100%);
+      box-shadow:
+        0 0 8px rgba(211, 186, 132, 0.65),
+        0 0 22px rgba(211, 186, 132, 0.30),
+        0 0 50px rgba(211, 186, 132, 0.10);
+    }
+
+    /* Bottom accent bar */
+    .player-panel::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(227, 202, 168, 0.28) 20%,
+        rgba(227, 202, 168, 0.55) 45%,
+        var(--parchment) 50%,
+        rgba(227, 202, 168, 0.55) 55%,
+        rgba(227, 202, 168, 0.28) 80%,
+        transparent 100%);
+      box-shadow:
+        0 0 10px rgba(227, 202, 168, 0.30),
+        0 0 28px rgba(227, 202, 168, 0.10);
+    }
+
+    /* Winner state */
+    .player-panel.winner {
+      background:
+        radial-gradient(ellipse 170% 45% at 0% 0%, rgba(90, 80, 175, 0.55) 0%, transparent 60%),
+        radial-gradient(ellipse 100% 22% at 50% 100%, rgba(10, 8, 30, 0.75) 0%, transparent 68%),
+        linear-gradient(180deg,
+          rgba(56, 53, 122, 0.98) 0%,
+          rgba(43, 40, 95, 0.97) 32%,
+          rgba(31, 28, 76, 0.98) 62%,
+          rgba(20, 18, 50, 1.00) 100%);
+    }
+    .player-panel.p2.winner {
+      background:
+        radial-gradient(ellipse 170% 45% at 100% 0%, rgba(90, 80, 175, 0.55) 0%, transparent 60%),
+        radial-gradient(ellipse 100% 22% at 50% 100%, rgba(10, 8, 30, 0.75) 0%, transparent 68%),
+        linear-gradient(180deg,
+          rgba(56, 53, 122, 0.98) 0%,
+          rgba(43, 40, 95, 0.97) 32%,
+          rgba(31, 28, 76, 0.98) 62%,
+          rgba(20, 18, 50, 1.00) 100%);
+    }
+    .player-panel.winner::before {
+      height: 4px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        var(--gold) 12%,
+        var(--parchment-l) 38%,
+        #fdf5e8 50%,
+        var(--parchment-l) 62%,
+        var(--gold) 88%,
+        transparent 100%);
+      box-shadow:
+        0 0 14px rgba(240, 223, 200, 0.95),
+        0 0 32px rgba(211, 186, 132, 0.60),
+        0 0 70px rgba(211, 186, 132, 0.22);
+      animation: shimmer-line 1.8s ease-in-out infinite;
+    }
+
+    @keyframes shimmer-line {
+      0%   { opacity: 0.75; }
+      50%  { opacity: 1; }
+      100% { opacity: 0.75; }
+    }
+
+    /* ── Header ── */
+    .panel-header {
+      position: relative;
+      z-index: 1;
+      padding: 0 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .p2 .panel-header { text-align: right; }
+    .p2 .wins-row { justify-content: flex-end; }
+
+    .player-label {
+      font-family: 'Jost', sans-serif;
+      font-weight: 600;
+      font-size: 10px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-shadow: 0 0 10px rgba(211, 186, 132, 0.45);
+    }
+
+    .player-name {
+      font-family: 'Jost', sans-serif;
+      font-weight: 800;
+      font-size: 24px;
+      color: var(--text);
+      text-shadow:
+        0 0 18px rgba(240, 223, 200, 0.55),
+        0 0 40px rgba(227, 202, 168, 0.22),
+        0 0 80px rgba(211, 186, 132, 0.08);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* Divider under name */
+    .name-divider {
+      height: 1px;
+      background: linear-gradient(90deg,
+        rgba(211, 186, 132, 0.75) 0%,
+        rgba(227, 202, 168, 0.30) 55%,
+        transparent 100%);
+    }
+    .p2 .name-divider {
+      background: linear-gradient(270deg,
+        rgba(211, 186, 132, 0.75) 0%,
+        rgba(227, 202, 168, 0.30) 55%,
+        transparent 100%);
+    }
+
+    .wins-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .wins-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .win-pips { display: flex; gap: 7px; }
+
+    .pip {
+      width: 21px;
+      height: 21px;
+      border-radius: 50%;
+      border: 2px solid rgba(211, 186, 132, 0.55);
+      background: transparent;
+      transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
+    }
+
+    .pip.filled {
+      background: radial-gradient(circle, var(--parchment-l) 0%, var(--gold) 100%);
+      border-color: var(--parchment);
+      box-shadow:
+        0 0 8px var(--gold),
+        0 0 20px rgba(211, 186, 132, 0.55),
+        0 0 38px rgba(211, 186, 132, 0.20);
+    }
+
+    /* ── Panel body ── */
+    .panel-body { flex: 1; min-height: 0; }
+
+    /* ── Full-height beige ladder ── */
+    .ladder {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 46px;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 1px;
+      padding: 0;
+      /* richer gradient: deeper gold at edges, warm parchment through the middle */
+      background: linear-gradient(180deg,
+        #c0a060 0%,
+        #d3ba84 8%,
+        #dbc896 22%,
+        #e3caa8 42%,
+        #eddfc4 58%,
+        #e8d8b8 75%,
+        #dbc896 90%,
+        #c4a668 100%);
+    }
+
+    .p1 .ladder { right: 0; }
+    .p2 .ladder { left: 0; }
+
+    .rung {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      transition: background 0.2s ease;
+    }
+
+    .rung-num {
+      font-family: 'Jost', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 1;
+      color: rgba(42, 39, 92, 0.35);
+      transition: color 0.2s ease, font-size 0.15s ease;
+      user-select: none;
+    }
+
+    /* ── Rung states ── */
+
+    .rung.past .rung-num {
+      color: rgba(42, 39, 92, 0.62);
+    }
+
+    /* current rung: light parchment block — clearly visible at all positions */
+    .rung.current {
+      background: var(--parchment-l);
+      box-shadow: 0 0 8px rgba(211, 186, 132, 0.4), 0 0 20px rgba(211, 186, 132, 0.15);
+      flex: 1.4;
+    }
+    .rung.current .rung-num {
+      font-size: 22px;
+      color: #1a1840;
+      text-shadow: none;
+    }
+
+    .p1 .rung.current { border-left:  3px solid #a8864a; }
+    .p2 .rung.current { border-right: 3px solid #a8864a; }
+
+/* near-win 15+ — deep purple escalation with gold glow */
+    .rung.past.near-win .rung-num {
+      color: #2A275C;
+    }
+    .rung.current.near-win {
+      background: var(--parchment-l);
+      box-shadow: 0 0 10px rgba(211, 186, 132, 0.55), 0 0 24px rgba(211, 186, 132, 0.20);
+    }
+    .rung.current.near-win .rung-num {
+      font-size: 22px;
+      color: #1a1840;
+      text-shadow: none;
+    }
+
+    /* winner / max */
+    .rung.max             { background: rgba(42, 39, 92, 0.08); }
+    .rung.max .rung-num   { color: #2A275C; }
+    .rung.current.max {
+      background: var(--purple-deep);
+      animation: pulse-rung 1s ease-in-out infinite;
+    }
+    .rung.current.max .rung-num {
+      font-size: 22px;
+      color: var(--parchment-l);
+      text-shadow: 0 0 12px rgba(227, 202, 168, 1);
+    }
+
+    @keyframes pulse-rung {
+      0%, 100% { box-shadow: 0 0 12px rgba(227, 202, 168, 0.4), 0 0 30px rgba(227, 202, 168, 0.15); }
+      50%       { box-shadow: 0 0 26px rgba(227, 202, 168, 0.9), 0 0 60px rgba(211, 186, 132, 0.45), 0 0 90px rgba(227, 202, 168, 0.15); }
+    }
+
+    /* ── Rung slide-in on lore change ── */
+    @keyframes enter-from-below {
+      from { transform: translateY(14px); }
+      to   { transform: translateY(0); }
+    }
+    @keyframes enter-from-above {
+      from { transform: translateY(-14px); }
+      to   { transform: translateY(0); }
+    }
+
+    /* These come after .rung.current so they win the animation override */
+    .rung.enter-up   { animation: enter-from-below 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .rung.enter-down { animation: enter-from-above 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+    /* ── Winner badge ── */
+    .winner-badge {
+      position: relative;
+      z-index: 1;
+      display: none;
+      font-family: 'Jost', sans-serif;
+      font-weight: 700;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--beige-l);
+      text-shadow:
+        0 0 10px var(--beige-d),
+        0 0 25px rgba(201, 169, 110, 0.5);
+      text-align: center;
+      padding: 0 14px;
+      animation: pulse-text 1.2s ease-in-out infinite;
+    }
+
+    .player-panel.winner .winner-badge { display: block; }
+
+    @keyframes pulse-text {
+      0%, 100% { opacity: 1; text-shadow: 0 0 10px var(--gold), 0 0 25px rgba(211,186,132,0.5); }
+      50%       { opacity: 0.7; text-shadow: 0 0 20px var(--parchment), 0 0 40px rgba(227,202,168,0.6); }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+
+    <!-- Player 1 — left panel -->
+    <div class="player-panel p1" id="panel1">
+      <div class="panel-header">
+        <div class="player-label">Player 1</div>
+        <div class="player-name" id="name1">Player 1</div>
+        <div class="name-divider"></div>
+        <div class="wins-row">
+          <div class="wins-label">Wins</div>
+          <div class="win-pips">
+            <div class="pip" id="p1w0"></div>
+            <div class="pip" id="p1w1"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body"></div>
+      <div class="winner-badge">✦ WINNER ✦</div>
+      <div class="ladder" id="ladder1"></div>
+    </div>
+
+    <!-- Player 2 — right panel -->
+    <div class="player-panel p2" id="panel2">
+      <div class="panel-header">
+        <div class="player-label">Player 2</div>
+        <div class="player-name" id="name2">Player 2</div>
+        <div class="name-divider"></div>
+        <div class="wins-row">
+          <div class="wins-label">Wins</div>
+          <div class="win-pips">
+            <div class="pip" id="p2w0"></div>
+            <div class="pip" id="p2w1"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body"></div>
+      <div class="winner-badge">✦ WINNER ✦</div>
+      <div class="ladder" id="ladder2"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Lore-icon background pattern ──
+    (function () {
+      // Lore icons: actual PNG, floating upward like bubbles.
+      // Each icon gets a unique CSS keyframe with its own x-position and sway baked in.
+
+      function addPattern(panelId, seed0) {
+        const panel = document.getElementById(panelId);
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        Object.assign(svg.style, {
+          position: 'absolute', top: '0', left: '0',
+          width: '100%', height: '100%',
+          pointerEvents: 'none', overflow: 'hidden', zIndex: '0'
+        });
+
+        let s = seed0 >>> 0;
+        const rand = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 0xFFFFFFFF; };
+
+        let css = '';
+
+        for (let i = 0; i < 18; i++) {
+          const h     = 24 + rand() * 60;           // height 24–84 px
+          const w     = h * 0.72;
+          const baseX = rand() * 225;
+          const swayX = (20 + rand() * 25) * (rand() < 0.5 ? 1 : -1); // ±20–45 px, random direction
+          const dur   = 24 + rand() * 28;            // 24–52 s — very slow
+          const delay = -(rand() * dur);             // pre-offset so they're spread out immediately
+          const name  = `lf-${panelId}-${i}`;
+
+          // Keyframe: rises with sinusoidal side-to-side sway; fades in then out
+          css += `@keyframes ${name}{
+            0%  {transform:translate(${baseX.toFixed(1)}px,1120px);opacity:0}
+            15% {transform:translate(${(baseX+swayX*.5).toFixed(1)}px,952px);opacity:0.02}
+            30% {transform:translate(${(baseX+swayX).toFixed(1)}px,784px);opacity:0.02}
+            50% {transform:translate(${(baseX-swayX*.8).toFixed(1)}px,560px);opacity:0.02}
+            65% {transform:translate(${(baseX-swayX).toFixed(1)}px,392px);opacity:0.02}
+            80% {transform:translate(${(baseX+swayX*.5).toFixed(1)}px,224px);opacity:0.02}
+            90% {transform:translate(${(baseX+swayX*.2).toFixed(1)}px,112px);opacity:0}
+            100%{transform:translate(${baseX.toFixed(1)}px,-110px);opacity:0}
+          }`;
+
+          const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          g.style.animation = `${name} ${dur.toFixed(1)}s linear ${delay.toFixed(1)}s infinite`;
+
+          const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+          img.setAttribute('href', '/lore-icon.png');
+          img.setAttribute('x', '0');
+          img.setAttribute('y', '0');
+          img.setAttribute('width',  w.toFixed(1));
+          img.setAttribute('height', h.toFixed(1));
+          img.style.filter = 'invert(1) sepia(0.6) hue-rotate(10deg) saturate(0.8)';
+          img.style.mixBlendMode = 'screen';
+
+          g.appendChild(img);
+          svg.appendChild(g);
+        }
+
+        // Inject keyframes + respect reduced-motion preference
+        const style = document.createElement('style');
+        style.textContent = css +
+          `@media(prefers-reduced-motion:reduce){[style*="lf-"]{animation:none!important}}`;
+        document.head.appendChild(style);
+
+        panel.insertBefore(svg, panel.firstChild);
+      }
+
+      addPattern('panel1', 0xDEADBEEF);
+      addPattern('panel2', 0xCAFEBABE);
+    })();
+
+    for (const n of [1, 2]) {
+      const ladder = document.getElementById(`ladder${n}`);
+      for (let i = 0; i <= 20; i++) {
+        const rung = document.createElement('div');
+        rung.className = 'rung';
+        rung.id = `rung${n}-${i}`;
+        const num = document.createElement('span');
+        num.className = 'rung-num';
+        num.textContent = i;
+        rung.appendChild(num);
+        ladder.appendChild(rung);
+      }
+    }
+
+    let prev = { player1: { lore: 0, wins: 0 }, player2: { lore: 0, wins: 0 } };
+
+    function connect() {
+      const ws = new WebSocket(`ws://${location.host}`);
+      ws.addEventListener('message', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.type !== 'state') return;
+        updatePlayer(1, msg.data.player1, prev.player1);
+        updatePlayer(2, msg.data.player2, prev.player2);
+        prev = JSON.parse(JSON.stringify(msg.data));
+      });
+      ws.addEventListener('close', () => setTimeout(connect, 1500));
+    }
+    connect();
+
+    function fitName(el) {
+      el.style.fontSize = '24px';
+      while (el.scrollWidth > el.offsetWidth && parseFloat(el.style.fontSize) > 11) {
+        el.style.fontSize = (parseFloat(el.style.fontSize) - 0.5) + 'px';
+      }
+    }
+
+    function updatePlayer(n, data, old) {
+      const nameEl = document.getElementById(`name${n}`);
+      nameEl.textContent = data.name;
+      fitName(nameEl);
+
+      const isMax = data.lore >= 20;
+
+      for (let i = 0; i <= 20; i++) {
+        const rung = document.getElementById(`rung${n}-${i}`);
+        const isCurrent = i === data.lore;
+        const isPast    = i < data.lore;
+        const nearWin   = i >= 15;
+
+        rung.classList.toggle('past',     isPast && !isMax);
+        rung.classList.toggle('current',  isCurrent);
+        rung.classList.toggle('near-win', nearWin && (isCurrent || isPast) && !isMax);
+        rung.classList.toggle('max',      isMax && (isCurrent || isPast));
+      }
+
+      if (old && data.lore !== old.lore) {
+        const rung = document.getElementById(`rung${n}-${data.lore}`);
+        const cls = data.lore > old.lore ? 'enter-up' : 'enter-down';
+        rung.classList.remove('enter-up', 'enter-down');
+        void rung.offsetWidth; // force reflow so animation restarts
+        rung.classList.add(cls);
+        setTimeout(() => rung.classList.remove(cls), 350);
+      }
+
+      for (let i = 0; i < 2; i++) {
+        document.getElementById(`p${n}w${i}`).classList.toggle('filled', i < data.wins);
+      }
+
+      document.getElementById(`panel${n}`).classList.toggle('winner', isMax);
+    }
+  </script>
+</body>
+</html>

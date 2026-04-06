@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lorcana Stream Tools — Setup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Russo+One&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:   #15803d;
+      --green-l: #22c55e;
+      --gold:    #d97706;
+      --gold-l:  #fbbf24;
+      --bg:      #0a101e;
+      --surface: #0f1729;
+      --border:  rgba(255,255,255,0.08);
+      --text:    #ffffff;
+      --muted:   rgba(255,255,255,0.45);
+    }
+    body {
+      background: var(--bg);
+      font-family: 'Chakra Petch', monospace;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      gap: 32px;
+    }
+
+    .title {
+      font-family: 'Russo One', sans-serif;
+      font-size: 28px;
+      letter-spacing: 2px;
+      text-align: center;
+      color: var(--text);
+    }
+
+    .subtitle {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .card-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .card-title {
+      font-family: 'Russo One', sans-serif;
+      font-size: 20px;
+      color: var(--gold-l);
+    }
+
+    .qr-wrap {
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .url-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--green-l);
+      word-break: break-all;
+      text-align: center;
+    }
+
+    .btn-open {
+      background: linear-gradient(135deg, var(--green), #166534);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-family: 'Chakra Petch', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 12px 24px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: transform 0.1s;
+      min-height: 44px;
+      line-height: 20px;
+    }
+    .btn-open:hover { transform: scale(1.03); }
+
+    .obs-card {
+      width: 100%;
+      max-width: 900px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+    }
+
+    .obs-title {
+      font-family: 'Russo One', sans-serif;
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .obs-steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .obs-steps li {
+      display: flex;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .obs-url {
+      color: var(--green-l);
+      font-family: 'Chakra Petch', monospace;
+    }
+
+    .dim-note {
+      font-size: 11px;
+      color: var(--gold);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <div class="title">LORCANA STREAM TOOLS</div>
+    <div class="subtitle">Setup & Controller Links</div>
+  </div>
+
+  <div style="width:100%;max-width:440px">
+    <div class="card">
+      <div class="card-label">Shared Mobile Controller</div>
+      <div class="card-title" style="color:var(--green-l)">Both Players — One Phone</div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;line-height:1.6">
+        Place the phone between both players in <strong style="color:var(--text)">landscape mode</strong>.<br>
+        Player 2's side is rotated 180°.
+      </div>
+      <div class="qr-wrap"><div id="qr1"></div></div>
+      <div class="url-box" id="url1">—</div>
+      <a class="btn-open" id="link1" href="#" target="_blank">Open Controller</a>
+    </div>
+  </div>
+
+  <div class="obs-card">
+    <div class="obs-title">OBS Setup</div>
+    <ol class="obs-steps">
+      <li>
+        <div class="step-num">1</div>
+        <div>In OBS, add a <strong style="color:var(--text)">Browser Source</strong> to your scene.</div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div>Set the URL to: <span class="obs-url" id="overlayUrl">http://localhost:3000/overlay.html</span></div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div>Set dimensions to <strong style="color:var(--text)">1920 × 1080</strong> and position it at the top-left of your canvas. The centre is fully transparent — only the side panels are visible.</div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div>Check <strong style="color:var(--text)">"Shutdown source when not visible"</strong> and <strong style="color:var(--text)">"Refresh browser when scene becomes active"</strong>.</div>
+      </li>
+      <li>
+        <div class="step-num">5</div>
+        <div>Share the Player 1 / Player 2 QR codes above with your opponents — they connect via their phone on the same Wi-Fi.</div>
+      </li>
+    </ol>
+    <div class="dim-note">Tip: You can resize the browser source to any height — the overlay is fully transparent outside the panels.</div>
+  </div>
+
+  <script>
+    const host = location.host; // e.g. 192.168.1.5:3000
+    const base = `${location.protocol}//${host}`;
+
+    const ctrlUrl = `${base}/controller.html`;
+
+    document.getElementById('url1').textContent = ctrlUrl;
+    document.getElementById('link1').href = ctrlUrl;
+    document.getElementById('overlayUrl').textContent = `${base}/overlay.html`;
+
+    new QRCode(document.getElementById('qr1'), { text: ctrlUrl, width: 150, height: 150, colorDark: '#000', colorLight: '#fff' });
+  </script>
+</body>
+</html>

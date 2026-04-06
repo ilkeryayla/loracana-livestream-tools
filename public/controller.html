@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Lorcana Controller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── Lorcana palette ── */
+      --gold:        #d3ba84;
+      --parchment:   #e3caa8;
+      --parchment-l: #f0dfc8;
+      --purple:      #2A275C;
+      --purple-deep: #1a1840;
+      --purple-mid:  #322f6e;
+      --beige:       #e3caa8;
+      --beige-l:     #f0dfc8;
+      --beige-d:     #d3ba84;
+      --bg:          #1a1840;
+      --surface:     rgba(42, 39, 92, 0.8);
+      --surface2:    rgba(26, 24, 64, 0.9);
+      --border:      rgba(227, 202, 168, 0.15);
+      --text:        #f0dfc8;
+      --muted:       rgba(227, 202, 168, 0.50);
+      --red:         #dc2626;
+    }
+
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      width: 100vw;
+      height: 100dvh;
+      max-width: 100vw;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--purple-deep) 0%, var(--purple) 60%, var(--purple-mid) 100%);
+      font-family: 'Jost', sans-serif;
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+    }
+
+    @media (orientation: portrait) {
+      .rotate-prompt { display: flex; }
+      .game-layout   { display: none; }
+    }
+    @media (orientation: landscape) {
+      .rotate-prompt { display: none; }
+      .game-layout   { display: flex; }
+    }
+
+    .rotate-prompt {
+      position: fixed; inset: 0;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px;
+      background: var(--purple-deep);
+      z-index: 100;
+    }
+
+    .rotate-icon {
+      font-size: 52px;
+      animation: rotateHint 1.5s ease-in-out infinite;
+    }
+
+    @keyframes rotateHint {
+      0%, 100% { transform: rotate(0deg); }
+      50%       { transform: rotate(90deg); }
+    }
+
+    .rotate-text {
+      font-family: 'Jost', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: 4px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* ── Main layout ── */
+    .game-layout {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      flex-direction: row;
+      align-items: stretch;
+      padding-left:  env(safe-area-inset-left,  0px);
+      padding-right: env(safe-area-inset-right, 0px);
+    }
+
+    .half {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 10px 12px;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+      min-width: 0;
+      /* gradient matching overlay panels */
+      background: linear-gradient(180deg,
+        rgba(50, 47, 110, 0.60) 0%,
+        rgba(42, 39, 92, 0.40) 50%,
+        rgba(26, 24, 64, 0.65) 100%);
+    }
+
+
+    /* top accent line */
+    .half::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--beige), transparent);
+      opacity: 0.6;
+    }
+
+    .half.p2 { transform: rotate(180deg); }
+
+    .top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .player-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .player-label {
+      font-weight: 600;
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .player-name-btn {
+      font-family: 'Jost', sans-serif;
+      font-weight: 800;
+      font-size: clamp(13px, 2.5vw, 18px);
+      color: var(--text);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 28vw;
+      touch-action: manipulation;
+      text-shadow: 0 0 16px rgba(232,213,163,0.3);
+    }
+
+    .player-name-btn::after {
+      content: ' ✎';
+      font-size: 10px;
+      opacity: 0.35;
+    }
+
+    .wins-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .wins-label {
+      font-weight: 600;
+      font-size: 8px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pips { display: flex; gap: 6px; }
+
+    .pip {
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      border: 2px solid rgba(201,169,110,0.6);
+      background: transparent;
+      transition: background 0.25s, box-shadow 0.25s, border-color 0.25s;
+    }
+    .pip.filled {
+      background: radial-gradient(circle, var(--beige-l) 0%, var(--beige-d) 100%);
+      border-color: var(--beige);
+      box-shadow: 0 0 8px var(--beige-d), 0 0 16px rgba(211,186,132,0.4);
+    }
+
+    .conn-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--red);
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 2px;
+      transition: background 0.3s;
+    }
+    .conn-dot.on {
+      background: var(--gold);
+      box-shadow: 0 0 6px var(--gold);
+    }
+
+    /* ── Lore display ── */
+    .lore-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 4px;
+      min-height: 0;
+    }
+
+    .lore-number {
+      font-family: 'Jost', sans-serif;
+      font-weight: 800;
+      font-size: clamp(56px, 14vw, 100px);
+      line-height: 1;
+      color: var(--text);
+      text-shadow:
+        0 0 30px rgba(232,213,163,0.35),
+        0 0 60px rgba(232,213,163,0.12);
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s;
+    }
+
+    .lore-number.up {
+      transform: scale(1.15);
+      color: var(--beige-l);
+      text-shadow: 0 0 30px rgba(232,213,163,0.9), 0 0 60px rgba(201,169,110,0.5);
+    }
+    .lore-number.down {
+      transform: scale(0.9);
+      color: var(--muted);
+    }
+
+    .lore-cap {
+      font-weight: 600;
+      font-size: clamp(9px, 1.5vw, 12px);
+      letter-spacing: 3px;
+      color: var(--muted);
+    }
+
+    .progress-wrap {
+      width: 90%;
+      height: 5px;
+      background: rgba(232,213,163,0.10);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--parchment));
+      box-shadow: 0 0 8px rgba(211,186,132,0.4);
+      transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .progress-fill.hot {
+      background: linear-gradient(90deg, var(--gold), var(--parchment-l));
+      box-shadow: 0 0 12px rgba(227,202,168,0.7);
+    }
+
+    /* ── Lore buttons ── */
+    .lore-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-lore {
+      border: none;
+      border-radius: 10px;
+      height: clamp(52px, 10vh, 72px);
+      font-family: 'Jost', sans-serif;
+      font-weight: 800;
+      font-size: clamp(22px, 4vw, 32px);
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      user-select: none;
+    }
+    .btn-lore:active { transform: scale(0.92); }
+
+    .btn-minus {
+      background: rgba(26, 24, 64, 0.8);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-minus:active { color: var(--text); }
+
+    .btn-plus {
+      background: linear-gradient(135deg, var(--gold), #b89a5a);
+      color: var(--purple-deep);
+      box-shadow: 0 3px 14px rgba(211,186,132,0.4);
+    }
+
+    .btn-sub {
+      font-family: 'Jost', sans-serif;
+      font-weight: 600;
+      font-size: clamp(8px, 1.2vw, 11px);
+      letter-spacing: 2px;
+      opacity: 0.7;
+    }
+
+    /* ── Win + Reset row ── */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-sm {
+      border: none;
+      border-radius: 8px;
+      height: clamp(38px, 7vh, 52px);
+      font-family: 'Jost', sans-serif;
+      font-weight: 700;
+      font-size: clamp(9px, 1.5vw, 12px);
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.2;
+      user-select: none;
+    }
+    .btn-sm:active { transform: scale(0.92); }
+
+    .btn-win-rm {
+      background: rgba(26, 24, 64, 0.8);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-win-add {
+      background: linear-gradient(135deg, var(--gold), #b89a5a);
+      color: var(--purple-deep);
+      box-shadow: 0 3px 10px rgba(211,186,132,0.35);
+    }
+    .btn-reset {
+      background: rgba(220,38,38,0.10);
+      border: 1px solid rgba(220,38,38,0.25);
+      color: #fca5a5;
+      font-size: clamp(8px, 1.2vw, 10px);
+    }
+
+    /* ── Center divider ── */
+    .divider {
+      width: 56px;
+      flex-shrink: 0;
+      background: rgba(232,213,163,0.05);
+      border-left:  1px solid var(--border);
+      border-right: 1px solid var(--border);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .divider-icon {
+      font-family: 'Jost', sans-serif;
+      font-weight: 800;
+      font-size: 11px;
+      color: var(--beige);
+      letter-spacing: 2px;
+      writing-mode: vertical-lr;
+      text-orientation: mixed;
+      padding: 8px 0;
+    }
+
+    .btn-new-match {
+      border: 1px solid rgba(220,38,38,0.35);
+      border-radius: 8px;
+      background: rgba(220,38,38,0.08);
+      color: #fca5a5;
+      font-family: 'Jost', sans-serif;
+      font-weight: 700;
+      font-size: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      line-height: 1.3;
+      text-align: center;
+      padding: 8px 6px;
+      cursor: pointer;
+      touch-action: manipulation;
+      width: 44px;
+    }
+    .btn-new-match:active { transform: scale(0.92); }
+
+    /* ── Winner flash ── */
+    .winner-flash {
+      position: absolute; inset: 0;
+      background: rgba(42, 39, 92, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 5;
+    }
+    .winner-flash.show { opacity: 1; }
+
+    .winner-text {
+      font-family: 'Jost', sans-serif;
+      font-weight: 800;
+      font-size: clamp(18px, 4vw, 28px);
+      color: var(--beige-l);
+      letter-spacing: 5px;
+      text-shadow: 0 0 20px var(--beige-d), 0 0 40px rgba(201,169,110,0.5);
+      animation: pulse 0.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.6; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Portrait warning -->
+  <div class="rotate-prompt">
+    <div class="rotate-icon">📱</div>
+    <div class="rotate-text">Rotate to landscape</div>
+  </div>
+
+  <!-- Main split layout -->
+  <div class="game-layout">
+
+    <!-- ── Player 1 (left, normal) ── -->
+    <div class="half p1" id="half1">
+      <div class="winner-flash" id="flash1"><div class="winner-text">✦ WINNER ✦</div></div>
+
+      <div class="top-row">
+        <div class="player-info">
+          <div class="player-label">Player 1</div>
+          <button class="player-name-btn" id="namBtn1">Player 1</button>
+        </div>
+        <div class="wins-block">
+          <div class="wins-label">Wins</div>
+          <div class="pips">
+            <div class="pip" id="pip1-0"></div>
+            <div class="pip" id="pip1-1"></div>
+          </div>
+        </div>
+        <div class="conn-dot" id="dot1"></div>
+      </div>
+
+      <div class="lore-display">
+        <div class="lore-number" id="lore1">0</div>
+        <div class="lore-cap">/ 20 LORE</div>
+        <div class="progress-wrap">
+          <div class="progress-fill" id="bar1" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="lore-btns">
+        <button class="btn-lore btn-minus" id="minus1">
+          <span>−</span><span class="btn-sub">LORE</span>
+        </button>
+        <button class="btn-lore btn-plus" id="plus1">
+          <span>+</span><span class="btn-sub">LORE</span>
+        </button>
+      </div>
+
+      <div class="bottom-row">
+        <button class="btn-sm btn-win-rm"  id="winRm1">− Win</button>
+        <button class="btn-sm btn-win-add" id="winAdd1">+ Win</button>
+        <button class="btn-sm btn-reset"   id="reset1">Reset<br>Lore</button>
+      </div>
+    </div>
+
+    <!-- ── Centre divider ── -->
+    <div class="divider">
+      <span class="divider-icon">VS</span>
+      <button class="btn-new-match" id="newMatch">New<br>Match</button>
+    </div>
+
+    <!-- ── Player 2 (right, rotated 180°) ── -->
+    <div class="half p2" id="half2">
+      <div class="winner-flash" id="flash2"><div class="winner-text">✦ WINNER ✦</div></div>
+
+      <div class="top-row">
+        <div class="player-info">
+          <div class="player-label">Player 2</div>
+          <button class="player-name-btn" id="namBtn2">Player 2</button>
+        </div>
+        <div class="wins-block">
+          <div class="wins-label">Wins</div>
+          <div class="pips">
+            <div class="pip" id="pip2-0"></div>
+            <div class="pip" id="pip2-1"></div>
+          </div>
+        </div>
+        <div class="conn-dot" id="dot2"></div>
+      </div>
+
+      <div class="lore-display">
+        <div class="lore-number" id="lore2">0</div>
+        <div class="lore-cap">/ 20 LORE</div>
+        <div class="progress-wrap">
+          <div class="progress-fill" id="bar2" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="lore-btns">
+        <button class="btn-lore btn-minus" id="minus2">
+          <span>−</span><span class="btn-sub">LORE</span>
+        </button>
+        <button class="btn-lore btn-plus" id="plus2">
+          <span>+</span><span class="btn-sub">LORE</span>
+        </button>
+      </div>
+
+      <div class="bottom-row">
+        <button class="btn-sm btn-win-rm"  id="winRm2">− Win</button>
+        <button class="btn-sm btn-win-add" id="winAdd2">+ Win</button>
+        <button class="btn-sm btn-reset"   id="reset2">Reset<br>Lore</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let ws, prev = { player1: { lore: 0 }, player2: { lore: 0 } };
+
+    function setConnected(on) {
+      document.getElementById('dot1').classList.toggle('on', on);
+      document.getElementById('dot2').classList.toggle('on', on);
+    }
+
+    function send(msg) {
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
+    }
+
+    function connect() {
+      ws = new WebSocket(`ws://${location.host}`);
+      ws.addEventListener('open',    () => setConnected(true));
+      ws.addEventListener('close',   () => { setConnected(false); setTimeout(connect, 1500); });
+      ws.addEventListener('message', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.type !== 'state') return;
+        renderPlayer(1, msg.data.player1, prev.player1);
+        renderPlayer(2, msg.data.player2, prev.player2);
+        prev = JSON.parse(JSON.stringify(msg.data));
+      });
+    }
+    connect();
+
+    function renderPlayer(n, data, old) {
+      document.getElementById(`namBtn${n}`).textContent = data.name + ' ✎';
+
+      const loreEl = document.getElementById(`lore${n}`);
+      loreEl.textContent = data.lore;
+      if (old && data.lore !== old.lore) {
+        const cls = data.lore > old.lore ? 'up' : 'down';
+        loreEl.classList.add(cls);
+        setTimeout(() => loreEl.classList.remove(cls), 250);
+      }
+
+      const bar = document.getElementById(`bar${n}`);
+      bar.style.width = (data.lore / 20 * 100) + '%';
+      bar.classList.toggle('hot', data.lore >= 15);
+
+      for (let i = 0; i < 2; i++) {
+        document.getElementById(`pip${n}-${i}`).classList.toggle('filled', i < data.wins);
+      }
+
+      document.getElementById(`flash${n}`).classList.toggle('show', data.lore >= 20);
+    }
+
+    function editName(player) {
+      const current = document.getElementById(`namBtn${player}`).textContent.replace(' ✎', '').trim();
+      const val = prompt(`Player ${player} name:`, current);
+      if (val && val.trim()) send({ type: 'setName', player: `player${player}`, value: val.trim() });
+    }
+
+    document.getElementById('namBtn1').addEventListener('click', () => editName(1));
+    document.getElementById('namBtn2').addEventListener('click', () => editName(2));
+
+    document.getElementById('plus1').addEventListener('click',  () => send({ type: 'adjustLore', player: 'player1', delta:  1 }));
+    document.getElementById('minus1').addEventListener('click', () => send({ type: 'adjustLore', player: 'player1', delta: -1 }));
+    document.getElementById('plus2').addEventListener('click',  () => send({ type: 'adjustLore', player: 'player2', delta:  1 }));
+    document.getElementById('minus2').addEventListener('click', () => send({ type: 'adjustLore', player: 'player2', delta: -1 }));
+
+    document.getElementById('winAdd1').addEventListener('click', () => send({ type: 'adjustWins', player: 'player1', delta:  1 }));
+    document.getElementById('winRm1').addEventListener('click',  () => send({ type: 'adjustWins', player: 'player1', delta: -1 }));
+    document.getElementById('winAdd2').addEventListener('click', () => send({ type: 'adjustWins', player: 'player2', delta:  1 }));
+    document.getElementById('winRm2').addEventListener('click',  () => send({ type: 'adjustWins', player: 'player2', delta: -1 }));
+
+    document.getElementById('reset1').addEventListener('click', () => {
+      if (confirm('Reset lore for both players?')) send({ type: 'resetLore' });
+    });
+    document.getElementById('reset2').addEventListener('click', () => {
+      if (confirm('Reset lore for both players?')) send({ type: 'resetLore' });
+    });
+
+    document.getElementById('newMatch').addEventListener('click', () => {
+      if (confirm('Start a new match? This clears lore and wins for both players.')) send({ type: 'fullReset' });
+    });
+  </script>
+</body>
+</html>
