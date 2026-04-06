@@ -75,6 +75,32 @@ Controls per player:
 
 Position the source at the top-left corner of your canvas. The transparent centre lets your game capture show through underneath.
 
+## Getting this running on another computer
+
+**Requirements:** Node.js 18+ and Git installed.
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/ilkeryayla/loracana-livestream-tools.git
+cd loracana-livestream-tools
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the server
+npm start
+```
+
+That's it. The server will print the URLs to use.
+
+To get the latest updates later:
+
+```bash
+git pull
+npm install   # only needed if dependencies changed
+npm start
+```
+
 ## Development
 
 ```bash
