@@ -470,11 +470,11 @@
           // Keyframe: rises with sinusoidal side-to-side sway; fades in then out
           css += `@keyframes ${name}{
             0%  {transform:translate(${baseX.toFixed(1)}px,1120px);opacity:0}
-            15% {transform:translate(${(baseX+swayX*.5).toFixed(1)}px,952px);opacity:0.02}
-            30% {transform:translate(${(baseX+swayX).toFixed(1)}px,784px);opacity:0.02}
-            50% {transform:translate(${(baseX-swayX*.8).toFixed(1)}px,560px);opacity:0.02}
-            65% {transform:translate(${(baseX-swayX).toFixed(1)}px,392px);opacity:0.02}
-            80% {transform:translate(${(baseX+swayX*.5).toFixed(1)}px,224px);opacity:0.02}
+            15% {transform:translate(${(baseX+swayX*.5).toFixed(1)}px,952px);opacity:0.04}
+            30% {transform:translate(${(baseX+swayX).toFixed(1)}px,784px);opacity:0.04}
+            50% {transform:translate(${(baseX-swayX*.8).toFixed(1)}px,560px);opacity:0.04}
+            65% {transform:translate(${(baseX-swayX).toFixed(1)}px,392px);opacity:0.04}
+            80% {transform:translate(${(baseX+swayX*.5).toFixed(1)}px,224px);opacity:0.04}
             90% {transform:translate(${(baseX+swayX*.2).toFixed(1)}px,112px);opacity:0}
             100%{transform:translate(${baseX.toFixed(1)}px,-110px);opacity:0}
           }`;
