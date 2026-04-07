@@ -196,7 +196,7 @@
     .player-name {
       font-family: 'Jost', sans-serif;
       font-weight: 800;
-      font-size: 28px;
+      font-size: 34px;
       color: var(--text);
       text-shadow:
         0 0 18px rgba(240, 223, 200, 0.55),
@@ -538,7 +538,7 @@
     connect();
 
     function fitName(el) {
-      el.style.fontSize = '28px';
+      el.style.fontSize = '34px';
       while (el.scrollWidth > el.offsetWidth && parseFloat(el.style.fontSize) > 11) {
         el.style.fontSize = (parseFloat(el.style.fontSize) - 0.5) + 'px';
       }
