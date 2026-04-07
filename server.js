@@ -14,7 +14,8 @@ const STATE_FILE = 'state.json';
 function defaultState() {
   return {
     player1: { name: 'Player 1', lore: 0, wins: 0 },
-    player2: { name: 'Player 2', lore: 0, wins: 0 }
+    player2: { name: 'Player 2', lore: 0, wins: 0 },
+    timer: { durationMs: 600000, endsAt: null, remainingMs: 600000, running: false }
   };
 }
 
@@ -25,12 +26,20 @@ try {
   state = defaultState();
 }
 
+// Normalise timer state (handles missing key on upgrade, and stale running state after restart)
+if (!state.timer) state.timer = defaultState().timer;
+if (state.timer.running && state.timer.endsAt < Date.now()) {
+  state.timer.running = false;
+  state.timer.remainingMs = 0;
+  state.timer.endsAt = null;
+}
+
 function saveState() {
   fs.writeFileSync(STATE_FILE, JSON.stringify(state));
 }
 
 function broadcast(data) {
-  const msg = JSON.stringify(data);
+  const msg = JSON.stringify({ ...data, serverNow: Date.now() });
   for (const client of wss.clients) {
     if (client.readyState === WebSocket.OPEN) client.send(msg);
   }
@@ -39,7 +48,7 @@ function broadcast(data) {
 app.use(express.static('public'));
 
 wss.on('connection', (ws) => {
-  ws.send(JSON.stringify({ type: 'state', data: state }));
+  ws.send(JSON.stringify({ type: 'state', data: state, serverNow: Date.now() }));
 
   ws.on('message', (raw) => {
     let msg;
@@ -72,8 +81,34 @@ wss.on('connection', (ws) => {
       case 'fullReset':
         state = {
           player1: { name: state.player1.name, lore: 0, wins: 0 },
-          player2: { name: state.player2.name, lore: 0, wins: 0 }
+          player2: { name: state.player2.name, lore: 0, wins: 0 },
+          timer: { durationMs: state.timer.durationMs, endsAt: null, remainingMs: state.timer.durationMs, running: false }
         };
+        break;
+      case 'timerSetDuration': {
+        const ms = parseInt(msg.ms, 10);
+        if (!Number.isFinite(ms) || ms <= 0 || ms > 5999000) return;
+        if (state.timer.running) return;
+        state.timer.durationMs = ms;
+        state.timer.remainingMs = ms;
+        state.timer.endsAt = null;
+        break;
+      }
+      case 'timerStart':
+        if (state.timer.running || state.timer.remainingMs <= 0) return;
+        state.timer.endsAt = Date.now() + state.timer.remainingMs;
+        state.timer.running = true;
+        break;
+      case 'timerPause':
+        if (!state.timer.running) return;
+        state.timer.remainingMs = Math.max(0, state.timer.endsAt - Date.now());
+        state.timer.endsAt = null;
+        state.timer.running = false;
+        break;
+      case 'timerReset':
+        state.timer.running = false;
+        state.timer.endsAt = null;
+        state.timer.remainingMs = state.timer.durationMs;
         break;
       default:
         return;

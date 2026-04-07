@@ -373,7 +373,7 @@
 
     /* ── Center divider ── */
     .divider {
-      width: 56px;
+      width: 108px;
       flex-shrink: 0;
       background: rgba(232,213,163,0.05);
       border-left:  1px solid var(--border);
@@ -383,7 +383,102 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
+      padding: 8px 4px;
+    }
+
+    /* ── Timer block ── */
+    .timer-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      width: 100%;
+    }
+
+    .timer-label-c {
+      font-weight: 600;
+      font-size: 8px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .timer-display-c {
+      font-weight: 800;
+      font-size: clamp(18px, 3.2vw, 26px);
+      color: var(--text);
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 12px rgba(232,213,163,0.3);
+    }
+
+    .timer-display-c.expired-c {
+      color: #fca5a5;
+      text-shadow: 0 0 10px rgba(220,38,38,0.5);
+    }
+
+    .timer-inputs-c {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .timer-inputs-c input {
+      width: 34px;
+      background: rgba(26,24,64,0.8);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: 'Jost', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      text-align: center;
+      padding: 3px 2px;
+      -moz-appearance: textfield;
+    }
+    .timer-inputs-c input::-webkit-inner-spin-button,
+    .timer-inputs-c input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .timer-sep-c {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .timer-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .btn-timer {
+      border: none;
+      border-radius: 6px;
+      height: 28px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 700;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.1s;
+      width: 100%;
+    }
+    .btn-timer:active { transform: scale(0.92); }
+
+    .btn-timer-start {
+      background: linear-gradient(135deg, var(--gold), #b89a5a);
+      color: var(--purple-deep);
+      box-shadow: 0 2px 8px rgba(211,186,132,0.35);
+    }
+
+    .btn-timer-reset {
+      background: rgba(26,24,64,0.8);
+      border: 1px solid var(--border);
+      color: var(--muted);
     }
 
     .divider-icon {
@@ -503,6 +598,19 @@
     <!-- ── Centre divider ── -->
     <div class="divider">
       <span class="divider-icon">VS</span>
+      <div class="timer-block">
+        <div class="timer-label-c">ROUND</div>
+        <div class="timer-display-c" id="timerDisplay">10:00</div>
+        <div class="timer-inputs-c" id="timerInputs">
+          <input type="number" id="timerMins" min="0" max="99" value="10">
+          <span class="timer-sep-c">:</span>
+          <input type="number" id="timerSecs" min="0" max="59" value="0">
+        </div>
+        <div class="timer-btns">
+          <button class="btn-timer btn-timer-start" id="timerStartBtn">START</button>
+          <button class="btn-timer btn-timer-reset" id="timerResetBtn">RESET</button>
+        </div>
+      </div>
       <button class="btn-new-match" id="newMatch">New<br>Match</button>
     </div>
 
@@ -553,6 +661,8 @@
 
   <script>
     let ws, prev = { player1: { lore: 0 }, player2: { lore: 0 } };
+    let timerState = null, timerInterval = null;
+    let clockOffset = 0; // server clock minus local clock (ms)
 
     function setConnected(on) {
       document.getElementById('dot1').classList.toggle('on', on);
@@ -570,8 +680,10 @@
       ws.addEventListener('message', (e) => {
         const msg = JSON.parse(e.data);
         if (msg.type !== 'state') return;
+        if (msg.serverNow != null) clockOffset = msg.serverNow - Date.now();
         renderPlayer(1, msg.data.player1, prev.player1);
         renderPlayer(2, msg.data.player2, prev.player2);
+        if (msg.data.timer) updateTimerController(msg.data.timer);
         prev = JSON.parse(JSON.stringify(msg.data));
       });
     }
@@ -627,6 +739,97 @@
 
     document.getElementById('newMatch').addEventListener('click', () => {
       if (confirm('Start a new match? This clears lore and wins for both players.')) send({ type: 'fullReset' });
+    });
+
+    // ── Timer ──
+    function updateTimerController(t) {
+      timerState = t;
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      renderTimerController();
+      if (t.running) {
+        timerInterval = setInterval(renderTimerController, 250);
+      }
+    }
+
+    function renderTimerController() {
+      if (!timerState) return;
+      const t = timerState;
+      const ms = t.running ? Math.max(0, t.endsAt - Date.now() - clockOffset) : t.remainingMs;
+      const totalSecs = Math.ceil(ms / 1000);
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+
+      const displayEl = document.getElementById('timerDisplay');
+      displayEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      displayEl.classList.toggle('expired-c', ms === 0);
+
+      const startBtn = document.getElementById('timerStartBtn');
+      if (t.running) {
+        startBtn.textContent = 'PAUSE';
+      } else if (t.remainingMs > 0 && t.remainingMs < t.durationMs) {
+        startBtn.textContent = 'RESUME';
+      } else {
+        startBtn.textContent = 'START';
+      }
+
+      // Show inputs only when at rest at full duration
+      const inputsEl = document.getElementById('timerInputs');
+      const showInputs = !t.running && t.remainingMs === t.durationMs;
+      inputsEl.style.display = showInputs ? 'flex' : 'none';
+      if (showInputs) {
+        const dm = Math.round(t.durationMs / 1000);
+        document.getElementById('timerMins').value = Math.floor(dm / 60);
+        document.getElementById('timerSecs').value = dm % 60;
+      }
+
+      // Stop local tick if expired
+      if (ms === 0 && timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    }
+
+    function readInputMs() {
+      const m = parseInt(document.getElementById('timerMins').value, 10) || 0;
+      const s = parseInt(document.getElementById('timerSecs').value, 10) || 0;
+      return (m * 60 + s) * 1000;
+    }
+
+    document.getElementById('timerStartBtn').addEventListener('click', () => {
+      if (!timerState) return;
+      if (timerState.running) {
+        send({ type: 'timerPause' });
+      } else {
+        // If at full rest, apply any input changes first
+        if (timerState.remainingMs === timerState.durationMs) {
+          const newMs = readInputMs();
+          if (newMs > 0 && newMs !== timerState.durationMs) {
+            send({ type: 'timerSetDuration', ms: newMs });
+            // timerStart will be sent after state update arrives via WS
+            // Instead, queue it once:
+            const handler = (e) => {
+              const msg = JSON.parse(e.data);
+              if (msg.type === 'state' && msg.data.timer && msg.data.timer.durationMs === newMs) {
+                ws.removeEventListener('message', handler);
+                send({ type: 'timerStart' });
+              }
+            };
+            ws.addEventListener('message', handler);
+            return;
+          }
+        }
+        send({ type: 'timerStart' });
+      }
+    });
+
+    document.getElementById('timerResetBtn').addEventListener('click', () => {
+      send({ type: 'timerReset' });
+    });
+
+    // Live update duration while inputs change (when at rest)
+    ['timerMins', 'timerSecs'].forEach(id => {
+      document.getElementById(id).addEventListener('change', () => {
+        if (!timerState || timerState.running) return;
+        const newMs = readInputMs();
+        if (newMs > 0) send({ type: 'timerSetDuration', ms: newMs });
+      });
     });
   </script>
 </body>
