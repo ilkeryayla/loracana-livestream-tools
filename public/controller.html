@@ -404,11 +404,29 @@
       color: var(--gold);
     }
 
+    /* Ring + display stacked */
+    .timer-ring-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+    }
+
+    .timer-ring {
+      position: absolute;
+      top: 0; left: 0;
+      transform: rotate(-90deg);
+    }
+
     .timer-display-c {
+      position: relative;
+      z-index: 1;
       font-weight: 800;
-      font-size: clamp(18px, 3.2vw, 26px);
+      font-size: clamp(15px, 2.6vw, 21px);
       color: var(--text);
-      letter-spacing: 2px;
+      letter-spacing: 1px;
       font-variant-numeric: tabular-nums;
       text-shadow: 0 0 12px rgba(232,213,163,0.3);
     }
@@ -600,7 +618,16 @@
       <span class="divider-icon">VS</span>
       <div class="timer-block">
         <div class="timer-label-c">ROUND</div>
-        <div class="timer-display-c" id="timerDisplay">10:00</div>
+        <div class="timer-ring-wrap">
+          <svg class="timer-ring" viewBox="0 0 72 72" width="72" height="72">
+            <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(227,202,168,0.10)" stroke-width="3"/>
+            <circle id="timerRingFill" cx="36" cy="36" r="30" fill="none"
+              stroke="rgba(211,186,132,0.55)" stroke-width="3"
+              stroke-dasharray="188.5" stroke-dashoffset="0"
+              stroke-linecap="round"/>
+          </svg>
+          <div class="timer-display-c" id="timerDisplay">10:00</div>
+        </div>
         <div class="timer-inputs-c" id="timerInputs">
           <input type="number" id="timerMins" min="0" max="99" value="10">
           <span class="timer-sep-c">:</span>
@@ -762,6 +789,19 @@
       const displayEl = document.getElementById('timerDisplay');
       displayEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
       displayEl.classList.toggle('expired-c', ms === 0);
+
+      const ring = document.getElementById('timerRingFill');
+      if (ring && t.durationMs > 0) {
+        const frac = ms / t.durationMs;
+        ring.style.strokeDashoffset = ((1 - frac) * 188.5).toFixed(1);
+        if (ms === 0) {
+          ring.style.stroke = 'rgba(220,38,38,0.6)';
+        } else if (ms <= 30000 && t.running) {
+          ring.style.stroke = 'rgba(211,186,132,0.9)';
+        } else {
+          ring.style.stroke = 'rgba(211,186,132,0.55)';
+        }
+      }
 
       const startBtn = document.getElementById('timerStartBtn');
       if (t.running) {
