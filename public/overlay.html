@@ -516,35 +516,49 @@
       overflow: hidden;
     }
     .timer-progress-fill {
+      position: absolute;
+      top: 0; bottom: 0;
       height: 100%;
-      width: 100%;
+      width: 50%;
       background: linear-gradient(90deg, #1a1840, #2A275C);
       transition: width 0.25s linear, background 0.5s;
-      position: relative;
       overflow: hidden;
     }
 
-    .timer-progress-fill::after {
+    .timer-fill-left  { right: 50%; left: auto; }
+    .timer-fill-right { left: 50%; right: auto; background: linear-gradient(270deg, #1a1840, #2A275C); }
+
+    /* Sheen: left fill travels outward→center (left to right) */
+    .timer-fill-left::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg,
-        transparent 25%,
-        rgba(255,255,255,0.30) 50%,
-        transparent 75%);
-      animation: shimmer-bar-rtl 2s linear infinite;
+      background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.30) 50%, transparent 75%);
+      animation: shimmer-ltr 2s linear infinite;
     }
 
-    @keyframes shimmer-bar-rtl {
+    /* Sheen: right fill travels outward→center (right to left) */
+    .timer-fill-right::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.30) 50%, transparent 75%);
+      animation: shimmer-rtl 2s linear infinite;
+    }
+
+    @keyframes shimmer-ltr {
+      from { transform: translateX(-100%); }
+      to   { transform: translateX(100%); }
+    }
+
+    @keyframes shimmer-rtl {
       from { transform: translateX(100%); }
       to   { transform: translateX(-100%); }
     }
-    .round-timer.warning .timer-progress-fill {
-      background: linear-gradient(90deg, #1a1840, #3730a3);
-    }
-    .round-timer.expired .timer-progress-fill {
-      background: #7f1d1d;
-    }
+    .round-timer.warning .timer-fill-left  { background: linear-gradient(90deg,  #1a1840, #3730a3); }
+    .round-timer.warning .timer-fill-right { background: linear-gradient(270deg, #1a1840, #3730a3); }
+    .round-timer.expired .timer-fill-left,
+    .round-timer.expired .timer-fill-right { background: #7f1d1d; }
   </style>
 </head>
 <body>
@@ -614,7 +628,8 @@
     <div class="round-timer hidden" id="roundTimer">
       <div class="timer-digits" id="timerDigits">10:00</div>
       <div class="timer-progress-wrap">
-        <div class="timer-progress-fill" id="timerProgress"></div>
+        <div class="timer-progress-fill timer-fill-left"  id="timerProgressLeft"></div>
+        <div class="timer-progress-fill timer-fill-right" id="timerProgressRight"></div>
       </div>
     </div>
 
@@ -754,7 +769,8 @@
       const t = timerState;
       const el = document.getElementById('roundTimer');
       const digits = document.getElementById('timerDigits');
-      const progress = document.getElementById('timerProgress');
+      const fillLeft  = document.getElementById('timerProgressLeft');
+      const fillRight = document.getElementById('timerProgressRight');
 
       const ms = t.running ? Math.max(0, t.endsAt - Date.now() - clockOffset) : t.remainingMs;
       const totalSecs = Math.ceil(ms / 1000);
@@ -770,8 +786,10 @@
       el.classList.toggle('expired', isExpired && !isHidden);
       el.classList.toggle('warning', isWarning);
 
-      if (progress && t.durationMs > 0) {
-        progress.style.width = (ms / t.durationMs * 100).toFixed(2) + '%';
+      if (fillLeft && fillRight && t.durationMs > 0) {
+        const halfPct = (ms / t.durationMs * 50).toFixed(2) + '%';
+        fillLeft.style.width  = halfPct;
+        fillRight.style.width = halfPct;
       }
 
       if (t.running && ms > 0) {
